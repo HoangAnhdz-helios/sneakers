@@ -1,0 +1,166 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account profile for customer or administrator",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["CUSTOMER", "ADMIN"] },
+        "phone": { "type": "string", "maxLength": 20 },
+        "address": { "type": "string", "maxLength": 255 },
+        "city": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Trusted admin registry document for permission verification",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["ADMIN"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Shoe product listing with brand, pricing, images, and sizes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "alias": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 50 },
+        "price": { "type": "string", "maxLength": 50 },
+        "priceValue": { "type": "number" },
+        "compareAt": { "type": "string", "maxLength": 50 },
+        "compareAtValue": { "type": "number" },
+        "image": { "type": "string", "maxLength": 1000 },
+        "available": { "type": "boolean" },
+        "sku": { "type": "string", "maxLength": 50 },
+        "description": { "type": "string", "maxLength": 2000 }
+      },
+      "required": ["alias", "name", "category", "priceValue", "available"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order with items, shipping details, status and payment method",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "paymentMethod": { "type": "string", "enum": ["cod", "transfer", "card"] },
+        "paymentStatus": { "type": "string", "enum": ["unpaid", "paid", "refunded"] },
+        "orderStatus": { "type": "string", "enum": ["pending", "processing", "shipping", "delivered", "cancelled"] },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "shippingFee": { "type": "number" },
+        "total": { "type": "number" },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "paymentMethod", "orderStatus", "subtotal", "total"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Discount coupon code and conditions",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 50 },
+        "discountType": { "type": "string", "enum": ["fixed", "percent"] },
+        "discountValue": { "type": "number" },
+        "minOrderValue": { "type": "number" },
+        "usageLimit": { "type": "number" },
+        "usedCount": { "type": "number" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["code", "discountType", "discountValue", "active"]
+    },
+    "InventoryMovement": {
+      "title": "InventoryMovement",
+      "description": "Log entry tracking inventory changes",
+      "type": "object",
+      "properties": {
+        "productAlias": { "type": "string", "maxLength": 128 },
+        "sku": { "type": "string", "maxLength": 64 },
+        "size": { "type": "string", "maxLength": 20 },
+        "type": { "type": "string", "enum": ["IMPORT", "EXPORT", "ADJUST", "ORDER_DEDUCT", "ORDER_RESTORE"] },
+        "quantityChange": { "type": "number" },
+        "previousStock": { "type": "number" },
+        "newStock": { "type": "number" },
+        "reason": { "type": "string", "maxLength": 255 },
+        "performedBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["productAlias", "sku", "type", "quantityChange", "newStock"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "description": "Promotional banner configuration for home page carousel",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 100 },
+        "imageUrl": { "type": "string", "maxLength": 1000 },
+        "linkUrl": { "type": "string", "maxLength": 500 },
+        "order": { "type": "number" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["imageUrl", "active"]
+    },
+    "StoreSetting": {
+      "title": "StoreSetting",
+      "description": "Global store contact, bank transfer info and settings",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string", "maxLength": 100 },
+        "hotline": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 100 },
+        "announcement": { "type": "string", "maxLength": 255 },
+        "shippingFee": { "type": "number" },
+        "freeShippingMin": { "type": "number" }
+      },
+      "required": ["storeName", "hotline", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profiles including name, contact and addresses"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Security lookup document for verifying administrative privileges"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Catalog of sneaker products with variants, sizes and stock"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Purchased orders placed by customers and managed by store administrators"
+    },
+    "/coupons/{couponId}": {
+      "schema": "Coupon",
+      "description": "Promotional discount codes for cart checkouts"
+    },
+    "/inventoryMovements/{movementId}": {
+      "schema": "InventoryMovement",
+      "description": "Audit trail of warehouse stock changes and reconciliations"
+    },
+    "/banners/{bannerId}": {
+      "schema": "Banner",
+      "description": "Home banner slider elements"
+    },
+    "/storeSettings/{settingId}": {
+      "schema": "StoreSetting",
+      "description": "General store configuration"
+    }
+  }
+}

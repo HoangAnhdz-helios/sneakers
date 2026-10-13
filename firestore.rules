@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Deny All Catch-Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Security Helpers
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'imperblorius@gmail.com'
+      );
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      
+      allow create: if isSignedIn() && request.auth.uid == userId && (
+        incoming().role == 'CUSTOMER' || isAdmin()
+      );
+
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId && (
+          // Customers cannot escalate role to ADMIN
+          (!incoming().diff(existing()).affectedKeys().hasAny(['role']) || existing().role == incoming().role)
+        )) ||
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Products Collection
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      allow get: if true; // allow guest order confirmation lookup by ID
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if true; // Allows both guest and authenticated checkout
+
+      allow update: if isAdmin() || (
+        // Customer can cancel order only if it is pending
+        isSignedIn() && 
+        existing().userId == request.auth.uid &&
+        existing().orderStatus == 'pending' &&
+        incoming().orderStatus == 'cancelled' &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'cancelReason', 'updatedAt'])
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Coupons Collection
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Inventory Movements Collection
+    match /inventoryMovements/{movementId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Banners Collection
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Store Settings Collection
+    match /storeSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

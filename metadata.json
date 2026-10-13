@@ -1,0 +1,6 @@
+{
+  "name": "PhuAnh Sneaker",
+  "description": "Website thương mại điện tử chuyên cung cấp các dòng giày sneaker thời trang Tiger, JD, Nike, MLB, LV, Puma, Adidas với quản lý kho, giỏ hàng, đặt hàng và trang quản trị.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
